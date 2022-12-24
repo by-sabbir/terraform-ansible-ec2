@@ -1,0 +1,61 @@
+- name: Installing Docker, python and virtualenv
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Only run "update_cache=yes" if the last one is more than 3600 seconds ago
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Upgrade the OS (apt-get dist-upgrade)
+      apt:
+        upgrade: dist
+
+    - name: Uninstalling Previous Version of Docker (if any)
+      apt:
+        name: ['docker', 'docker.io', 'docker-client-latest', 'containerd', 'runc', 'docker-engine']
+        state: absent
+
+    - name: Install aptitude using apt
+      apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
+
+    - name: Install required system packages
+      apt: name={{ item }} state=latest update_cache=yes
+      loop: [ 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'htop', 'net-tools', 'vim']
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Set up the stable repository
+      command: add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+
+    - name: Run the equivalent of "apt-get update" as a separate step
+      apt:
+        update_cache: yes
+
+    - name: Installing docker
+      apt:
+        name: ['docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-compose-plugin']
+        state: latest
+
+    - name: Starting docker service
+      service:
+        name: docker
+        state: started
+
+    - name: Enabling docker service
+      service:
+        name: docker
+        enabled: yes
+
+    - name: Adding ubuntu to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Install required system packages
+      apt: name=unzip state=latest update_cache=yes
