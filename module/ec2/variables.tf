@@ -12,5 +12,5 @@ variable "vpc_id" {
 }
 
 variable "private_key_path" {
-  default = "/Users/sabbir/.ssh/id_ed25519"
+  default = "/home/vagrant/id_ed25519_test"
 }
